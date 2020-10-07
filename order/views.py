@@ -5,6 +5,7 @@ from django.shortcuts import render
 from rest_framework import generics
 from order.serializers import OrderSerializer
 from order.models import Order
+from rest_framework import viewsets, permissions
 
 
 class OrderCreateView(generics.CreateAPIView):
@@ -27,6 +28,13 @@ class OrderUpdateView(generics.RetrieveUpdateAPIView):
 
 
 class OrderGetByIdView(generics.RetrieveAPIView):
+    serializer_class = OrderSerializer
+    queryset = Order.objects.all()
+
+
+#  =============== ModelViewSet #  ===============
+
+class OrderModelViewSet(viewsets.ModelViewSet):
     serializer_class = OrderSerializer
     queryset = Order.objects.all()
 

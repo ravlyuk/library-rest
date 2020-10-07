@@ -2,9 +2,11 @@ from rest_framework import generics
 from authentication.serializers import UserSerializer
 from authentication.models import CustomUser
 from order.models import Order
-from order.serializers import   OrderSerializer
+from order.serializers import OrderSerializer
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import viewsets
+from rest_framework.decorators import action
 
 
 class UserCreateView(generics.CreateAPIView):
@@ -30,13 +32,27 @@ class UserGetByIdView(generics.RetrieveAPIView):
     serializer_class = UserSerializer
     queryset = CustomUser.objects.all()
 
+
+# -----------
+
+class OrderUserModelViewSet(viewsets.ModelViewSet):
+    serializer_class = OrderSerializer
+    queryset = Order.objects.all()
+
+    @action(detail=True)
+    def example(self, request, *args, **kwargs):
+        order = self.get_object()
+        serializer = OrderSerializer(order)
+        return Response(serializer.data)
+
+
+# -----------
+
 class OrderUserAllView(APIView):
     def get(self, request, user_id):
         queryset = Order.objects.filter(user_id=user_id)
-        serializer_class = OrderSerializer(queryset, many =True)
+        serializer_class = OrderSerializer(queryset, many=True)
         return Response(serializer_class.data)
-
-
 
 
 class OrderUserCreateView(APIView):
@@ -48,32 +64,29 @@ class OrderUserCreateView(APIView):
         return Response(status=201)
 
 
-
 class OrderUserUpdateDeleteView(APIView):
-    def get_object(self,user_id,pk):
+    def get_object(self, user_id, pk):
         try:
             return Order.objects.get(pk=pk)
         except Order.DoesNotExist:
             raise Response(status=404)
 
-    def get(self,request, user_id,pk):
-        order = self.get_object(user_id,pk)
+    def get(self, request, user_id, pk):
+        order = self.get_object(user_id, pk)
         serializer = OrderSerializer(order)
         return Response(serializer.data)
 
-    def put(self,request, pk,user_id, format =None):
-        order = self.get_object(user_id,pk)
-        serializer = OrderSerializer(order,data=request.data)
+    def put(self, request, pk, user_id):
+        order = self.get_object(user_id, pk)
+        serializer = OrderSerializer(order, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
 
         return Response(serializer.errors, status=400)
 
-    def delete(self, request, pk,user_id, format=None):
-        order = self.get_object(user_id,pk)
+    def delete(self, request, pk, user_id):
+        order = self.get_object(user_id, pk)
         order.delete()
 
         return Response(status=204)
-
-
